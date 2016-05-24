@@ -19,18 +19,21 @@ type Provider struct {
 // directory into memory accessible through a map of {template_name}
 // excluding the file extension to template.Template which holds and allows
 // execution of a template.
-func Cache() *Provider {
-	templates := buildTemplates()
-	return &Provider{templates: templates}
+func Cache() (*Provider, error) {
+	templates, err := buildTemplates()
+	if err != nil {
+		return nil, err
+	}
+	return &Provider{templates: templates}, nil
 }
 
-func buildTemplates() map[string]*template.Template {
+func buildTemplates() (map[string]*template.Template, error) {
 	templates := make(map[string]*template.Template)
 	templatesDir := "templates"
 
 	layouts, err := filepath.Glob(templatesDir + "/layouts/*.tmpl")
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	filepath.Walk(templatesDir+"/includes", func(path string, f os.FileInfo, err error) error {
@@ -44,14 +47,17 @@ func buildTemplates() map[string]*template.Template {
 		}
 		return nil
 	})
-	return templates
+	return templates, nil
 }
 
 // Invalidate deals with re-building the templates
 // map in the case new templates had been added or removed
 // or existing ones being updated.
 func (tp *Provider) Invalidate() {
-	tp.templates = buildTemplates()
+	templates, err := buildTemplates()
+	if err == nil {
+		tp.templates = templates
+	}
 }
 
 // Render handles rendering the template
