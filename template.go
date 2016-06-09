@@ -2,7 +2,7 @@ package template
 
 import (
 	"html/template"
-	"net/http"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -63,24 +63,16 @@ func (tp *Provider) Invalidate() {
 // Render handles rendering the template
 // held by the given provider with the given
 // name to the provided response writer with the given data.
-func (tp *Provider) Render(w http.ResponseWriter, tmpl string, data interface{}) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	err := tp.templates[tmpl].ExecuteTemplate(w, tmpl+".tmpl", data)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
+func (tp *Provider) Render(w io.Writer, tmpl string, data interface{}) {
+	tp.templates[tmpl].ExecuteTemplate(w, tmpl+".tmpl", data)
 }
 
 // RenderWithLayout handles rendering the provided template
 // held by the provider in the templates map with the given base template
 // where the base template needs to be cached as a part of the template to be
 // rendered.
-func (tp *Provider) RenderWithLayout(w http.ResponseWriter, tmpl string, layout string, data interface{}) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	err := tp.templates[tmpl].ExecuteTemplate(w, layout, data)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
+func (tp *Provider) RenderWithLayout(w io.Writer, tmpl string, layout string, data interface{}) {
+	tp.templates[tmpl].ExecuteTemplate(w, layout, data)
 }
 
 func (tp *Provider) HasTemplate(tmpl string) bool {
