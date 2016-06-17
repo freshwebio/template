@@ -6,6 +6,11 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
+)
+
+const (
+	stdTimeFmt = "Monday 2 January 2006 15:04"
 )
 
 // Provider provides all the templates
@@ -43,11 +48,30 @@ func buildTemplates() (map[string]*template.Template, error) {
 			for _, layout := range layouts {
 				files = append(files, layout)
 			}
-			templates[key] = template.Must(template.ParseFiles(files...))
+			templates[key] = template.Must(template.New(key).Funcs(funcMap()).ParseFiles(files...))
 		}
 		return nil
 	})
 	return templates, nil
+}
+
+func funcMap() template.FuncMap {
+	return template.FuncMap{
+		"oddoreven": func(i int) string {
+			if i%2 == 0 {
+				return "even"
+			}
+			return "odd"
+		},
+		"fmtdate": func(fmt string, t *time.Time) string {
+			formatted := ""
+			switch fmt {
+			case "std":
+				formatted = t.Format(stdTimeFmt)
+			}
+			return formatted
+		},
+	}
 }
 
 // Invalidate deals with re-building the templates
