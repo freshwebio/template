@@ -52,6 +52,18 @@ func buildTemplates() (map[string]*template.Template, error) {
 		}
 		return nil
 	})
+
+	filepath.Walk(templatesDir+"/mail", func(path string, f os.FileInfo, err error) error {
+		if strings.HasSuffix(path, ".tmpl") {
+			key := strings.TrimSuffix(f.Name(), ".tmpl")
+			files := []string{path}
+			for _, layout := range layouts {
+				files = append(files, layout)
+			}
+			templates[key] = template.Must(template.New(key).Funcs(funcMap()).ParseFiles(files...))
+		}
+		return nil
+	})
 	return templates, nil
 }
 
