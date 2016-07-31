@@ -88,7 +88,8 @@ func funcMap() template.FuncMap {
 
 // Invalidate deals with re-building the templates
 // map in the case new templates had been added or removed
-// or existing ones being updated.
+// or existing ones being updated. Usually will be called upon on a general
+// app clear cache invoked from a web interface or an external app management tool.
 func (tp *Provider) Invalidate() {
 	templates, err := buildTemplates()
 	if err == nil {
