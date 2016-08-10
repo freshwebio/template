@@ -13,10 +13,10 @@ const (
 	stdTimeFmt = "Monday 2 January 2006 15:04"
 )
 
-// Provider provides all the templates
+// ProviderImpl provides all the templates
 // used by the application
 // controllers to render responses.
-type Provider struct {
+type ProviderImpl struct {
 	templates map[string]*template.Template
 }
 
@@ -24,12 +24,12 @@ type Provider struct {
 // directory into memory accessible through a map of {template_name}
 // excluding the file extension to template.Template which holds and allows
 // execution of a template.
-func Cache() (*Provider, error) {
+func Cache() (*ProviderImpl, error) {
 	templates, err := buildTemplates()
 	if err != nil {
 		return nil, err
 	}
-	return &Provider{templates: templates}, nil
+	return &ProviderImpl{templates: templates}, nil
 }
 
 func buildTemplates() (map[string]*template.Template, error) {
@@ -107,7 +107,7 @@ func funcMap() template.FuncMap {
 // map in the case new templates had been added or removed
 // or existing ones being updated. Usually will be called upon on a general
 // app clear cache invoked from a web interface or an external app management tool.
-func (tp *Provider) Invalidate() {
+func (tp *ProviderImpl) Invalidate() {
 	templates, err := buildTemplates()
 	if err == nil {
 		tp.templates = templates
@@ -115,21 +115,21 @@ func (tp *Provider) Invalidate() {
 }
 
 // Render handles rendering the template
-// held by the given provider with the given
+// held by the given ProviderImpl with the given
 // name to the provided response writer with the given data.
-func (tp *Provider) Render(w io.Writer, tmpl string, data interface{}) {
+func (tp *ProviderImpl) Render(w io.Writer, tmpl string, data interface{}) {
 	tp.templates[tmpl].ExecuteTemplate(w, tmpl+".tmpl", data)
 }
 
 // RenderWithLayout handles rendering the provided template
-// held by the provider in the templates map with the given base template
+// held by the ProviderImpl in the templates map with the given base template
 // where the base template needs to be cached as a part of the template to be
 // rendered.
-func (tp *Provider) RenderWithLayout(w io.Writer, tmpl string, layout string, data interface{}) {
+func (tp *ProviderImpl) RenderWithLayout(w io.Writer, tmpl string, layout string, data interface{}) {
 	tp.templates[tmpl].ExecuteTemplate(w, layout, data)
 }
 
-func (tp *Provider) HasTemplate(tmpl string) bool {
+func (tp *ProviderImpl) HasTemplate(tmpl string) bool {
 	hasTemplate := false
 	if _, ok := tp.templates[tmpl]; ok {
 		hasTemplate = true
