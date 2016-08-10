@@ -83,6 +83,23 @@ func funcMap() template.FuncMap {
 			}
 			return formatted
 		},
+		"ucfirstwords": func(input string) string {
+			input = strings.ToUpper(input)
+			words := strings.Fields(input)
+			if len(words) == 0 {
+				return ""
+			}
+			output := ""
+			for _, word := range words {
+				var first rune
+				for _, c := range word {
+					first = c
+					break
+				}
+				output += string(first)
+			}
+			return output
+		},
 	}
 }
 
