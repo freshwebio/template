@@ -32,13 +32,24 @@ func Cache() (*ProviderImpl, error) {
 	return &ProviderImpl{templates: templates}, nil
 }
 
-func buildTemplates() (map[string]*template.Template, error) {
+func buildTemplates(fMap ...template.FuncMap) (map[string]*template.Template, error) {
 	templates := make(map[string]*template.Template)
 	templatesDir := "templates"
 
 	layouts, err := filepath.Glob(templatesDir + "/layouts/*.tmpl")
 	if err != nil {
 		return nil, err
+	}
+
+	// Add all the functions from the default funcMap() call to the custom
+	// template function map provided.
+	if len(fMap) > 0 {
+		tFuncMap := funcMap()
+		for key, fnc := range tFuncMap {
+			fMap[0][key] = fnc
+		}
+	} else {
+		fMap[0] = funcMap()
 	}
 
 	filepath.Walk(templatesDir+"/includes", func(path string, f os.FileInfo, err error) error {
@@ -48,7 +59,7 @@ func buildTemplates() (map[string]*template.Template, error) {
 			for _, layout := range layouts {
 				files = append(files, layout)
 			}
-			templates[key] = template.Must(template.New(key).Funcs(funcMap()).ParseFiles(files...))
+			templates[key] = template.Must(template.New(key).Funcs(fMap[0]).ParseFiles(files...))
 		}
 		return nil
 	})
@@ -60,7 +71,7 @@ func buildTemplates() (map[string]*template.Template, error) {
 			for _, layout := range layouts {
 				files = append(files, layout)
 			}
-			templates[key] = template.Must(template.New(key).Funcs(funcMap()).ParseFiles(files...))
+			templates[key] = template.Must(template.New(key).Funcs(fMap[0]).ParseFiles(files...))
 		}
 		return nil
 	})
