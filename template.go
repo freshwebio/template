@@ -24,8 +24,8 @@ type ProviderImpl struct {
 // directory into memory accessible through a map of {template_name}
 // excluding the file extension to template.Template which holds and allows
 // execution of a template.
-func Cache() (*ProviderImpl, error) {
-	templates, err := buildTemplates()
+func Cache(fMap ...template.FuncMap) (*ProviderImpl, error) {
+	templates, err := buildTemplates(fMap...)
 	if err != nil {
 		return nil, err
 	}
@@ -49,6 +49,7 @@ func buildTemplates(fMap ...template.FuncMap) (map[string]*template.Template, er
 			fMap[0][key] = fnc
 		}
 	} else {
+		fMap = make([]template.FuncMap, 1)
 		fMap[0] = funcMap()
 	}
 
@@ -128,16 +129,16 @@ func (tp *ProviderImpl) Invalidate() {
 // Render handles rendering the template
 // held by the given ProviderImpl with the given
 // name to the provided response writer with the given data.
-func (tp *ProviderImpl) Render(w io.Writer, tmpl string, data interface{}) {
-	tp.templates[tmpl].ExecuteTemplate(w, tmpl+".tmpl", data)
+func (tp *ProviderImpl) Render(w io.Writer, tmpl string, data interface{}) error {
+	return tp.templates[tmpl].ExecuteTemplate(w, tmpl+".tmpl", data)
 }
 
 // RenderWithLayout handles rendering the provided template
 // held by the ProviderImpl in the templates map with the given base template
 // where the base template needs to be cached as a part of the template to be
 // rendered.
-func (tp *ProviderImpl) RenderWithLayout(w io.Writer, tmpl string, layout string, data interface{}) {
-	tp.templates[tmpl].ExecuteTemplate(w, layout, data)
+func (tp *ProviderImpl) RenderWithLayout(w io.Writer, tmpl string, layout string, data interface{}) error {
+	return tp.templates[tmpl].ExecuteTemplate(w, layout, data)
 }
 
 func (tp *ProviderImpl) HasTemplate(tmpl string) bool {
