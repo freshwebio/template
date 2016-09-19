@@ -3,8 +3,8 @@ package template
 import "io"
 
 type Provider interface {
-	Render(io.Writer, string, interface{})
-	RenderWithLayout(io.Writer, string, string, interface{})
+	Render(io.Writer, string, interface{}) error
+	RenderWithLayout(io.Writer, string, string, interface{}) error
 	HasTemplate(tmpl string) bool
 	Invalidate()
 }
