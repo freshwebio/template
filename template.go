@@ -41,6 +41,11 @@ func buildTemplates(fMap ...template.FuncMap) (map[string]*template.Template, er
 		return nil, err
 	}
 
+	partials, err := filepath.Glob(templatesDir + "/partials/*.tmpl")
+	if err != nil {
+		return nil, err
+	}
+
 	// Add all the functions from the default funcMap() call to the custom
 	// template function map provided.
 	if len(fMap) > 0 {
@@ -57,6 +62,9 @@ func buildTemplates(fMap ...template.FuncMap) (map[string]*template.Template, er
 		if strings.HasSuffix(path, ".tmpl") {
 			key := strings.TrimSuffix(f.Name(), ".tmpl")
 			files := []string{path}
+			for _, partial := range partials {
+				files = append(files, partial)
+			}
 			for _, layout := range layouts {
 				files = append(files, layout)
 			}
@@ -73,6 +81,7 @@ func buildTemplates(fMap ...template.FuncMap) (map[string]*template.Template, er
 				files = append(files, layout)
 			}
 			templates[key] = template.Must(template.New(key).Funcs(fMap[0]).ParseFiles(files...))
+			// Now make all partials available for all include templates.
 		}
 		return nil
 	})
