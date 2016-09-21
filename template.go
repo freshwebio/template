@@ -58,12 +58,20 @@ func buildTemplates(fMap ...template.FuncMap) (map[string]*template.Template, er
 		fMap[0] = funcMap()
 	}
 
+	// TODO: refactor the way template entries are added to the cached template tree to allow for greater flexibility
+	// e.g partials referencing partials.
+
 	filepath.Walk(templatesDir+"/includes", func(path string, f os.FileInfo, err error) error {
 		if strings.HasSuffix(path, ".tmpl") {
 			key := strings.TrimSuffix(f.Name(), ".tmpl")
 			files := []string{path}
 			for _, partial := range partials {
 				files = append(files, partial)
+				// Register partials as their own template entries.
+				// NOTE: partials cannot  reference other partials in this instance.
+				parts := strings.Split(partial, "/")
+				partialKey := strings.TrimSuffix(parts[len(parts)-1], ".tmpl")
+				templates[partialKey] = template.Must(template.New(partialKey).Funcs(fMap[0]).ParseFiles(partial))
 			}
 			for _, layout := range layouts {
 				files = append(files, layout)
