@@ -1,6 +1,7 @@
 package template
 
 import (
+	"errors"
 	"html/template"
 	"io"
 	"os"
@@ -147,7 +148,15 @@ func (tp *ProviderImpl) Invalidate() {
 // held by the given ProviderImpl with the given
 // name to the provided response writer with the given data.
 func (tp *ProviderImpl) Render(w io.Writer, tmpl string, data interface{}) error {
-	return tp.templates[tmpl].ExecuteTemplate(w, tmpl+".tmpl", data)
+	if _, exists := tp.templates[tmpl]; exists {
+		err := tp.templates[tmpl].Execute(w, data)
+		if err != nil {
+			// Where there is an error try to execute the template under it's file name.
+			err = tp.templates[tmpl].ExecuteTemplate(w, tmpl+".tmpl", data)
+		}
+		return err
+	}
+	return errors.New("The given template doesn't exist in the current store.")
 }
 
 // RenderWithLayout handles rendering the provided template
